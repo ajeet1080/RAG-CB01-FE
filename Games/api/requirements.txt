@@ -1,0 +1,6 @@
+flask
+pandas
+flask_restful
+flask-cors
+openai==0.28
+sentence_transformers

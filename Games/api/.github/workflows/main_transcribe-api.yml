@@ -1,0 +1,36 @@
+name: Deploy to Azure App Service
+
+on:
+  push:
+    branches:
+      - main # Trigger the workflow on push or pull request to the main branch
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: "Checkout GitHub Action"
+        uses: actions/checkout@v2
+
+      - name: "Login to ACR"
+        uses: docker/login-action@v1
+        with:
+          registry: flaskapisgsmvp.azurecr.io
+          username: ${{ secrets.ACR_USERNAME }}
+          password: ${{ secrets.ACR_PASSWORD }}
+
+      - name: "Build and push Docker image"
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          push: true
+          tags: flaskapisgsmvp.azurecr.io/game:${{ github.sha }}
+
+      - name: "Deploy to Azure App Service"
+        uses: azure/webapps-deploy@v2
+        with:
+          app-name: "transcribe003" # Replace with your App Service's name
+          slot-name: "production" # Replace with your Slot name if any
+          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }} # Configure this in your repo's secrets
+          images: "flaskapisgsmvp.azurecr.io/game:${{ github.sha }}"
